@@ -77,6 +77,27 @@
     });
 
     /* ===== DYNAMIC YOUTUBE VIDEO SHOWCASE ===== */
+
+    // Convert any YouTube URL format into a proper embed URL
+    function convertToEmbedUrl(url) {
+        if (!url || typeof url !== 'string') return '';
+
+        // Already an embed URL
+        var embedMatch = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+        if (embedMatch) return 'https://www.youtube.com/embed/' + embedMatch[1];
+
+        // Standard watch URL: youtube.com/watch?v=XYZ
+        var watchMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+        if (watchMatch) return 'https://www.youtube.com/embed/' + watchMatch[1];
+
+        // Short URL: youtu.be/XYZ
+        var shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+        if (shortMatch) return 'https://www.youtube.com/embed/' + shortMatch[1];
+
+        // Fallback: return as-is if no known pattern matched
+        return url;
+    }
+
     function loadYouTubeVideos() {
         var container = document.getElementById('videos-container');
         if (!container) return;
@@ -97,8 +118,10 @@
                     var card = document.createElement('div');
                     card.className = 'video-card reveal';
 
+                    var embedUrl = convertToEmbedUrl(video.url);
+
                     var iframe = document.createElement('iframe');
-                    iframe.src = video.url;
+                    iframe.src = embedUrl;
                     iframe.title = video.title || 'SmarTok Video';
                     iframe.setAttribute('frameborder', '0');
                     iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
