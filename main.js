@@ -184,11 +184,32 @@
     var videoModal = document.getElementById('video-modal');
     var videoModalFeed = document.getElementById('video-modal-feed');
     var videoModalClose = document.getElementById('video-modal-close');
+    var videoModalObserver = null;
+
+    // Activate a slide's iframe: set src with autoplay
+    function activateVideoSlide(slide) {
+        var iframe = slide.querySelector('iframe');
+        if (!iframe) return;
+        var embedUrl = iframe.getAttribute('data-src');
+        if (!embedUrl) return;
+        if (iframe.src !== embedUrl + '?autoplay=1') {
+            iframe.src = embedUrl + '?autoplay=1';
+        }
+    }
+
+    // Deactivate a slide's iframe: clear src to stop playback
+    function deactivateVideoSlide(slide) {
+        var iframe = slide.querySelector('iframe');
+        if (!iframe) return;
+        if (iframe.src) {
+            iframe.src = '';
+        }
+    }
 
     function openVideoModal(clickedIndex) {
         if (!videoData || videoData.length === 0) return;
 
-        // Build modal feed slides
+        // Build modal feed slides — iframes start without src (no autoplay)
         videoModalFeed.innerHTML = '';
         videoData.forEach(function (video, index) {
             var slide = document.createElement('div');
@@ -199,7 +220,7 @@
             var orientation = detectOrientation(video.url);
 
             var iframe = document.createElement('iframe');
-            iframe.src = embedUrl + '?autoplay=1';
+            iframe.setAttribute('data-src', embedUrl);
             iframe.title = video.title || 'SmarTok Video';
             iframe.setAttribute('frameborder', '0');
             iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
@@ -221,24 +242,58 @@
         videoModal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        // Scroll to the clicked video
+        // Scroll to the clicked video first
         var targetSlide = videoModalFeed.querySelector('[data-slide-index="' + clickedIndex + '"]');
         if (targetSlide) {
             targetSlide.scrollIntoView({ behavior: 'auto' });
         }
+
+        // Set up IntersectionObserver to only play the fully visible slide
+        if (videoModalObserver) {
+            videoModalObserver.disconnect();
+        }
+
+        videoModalObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
+                    // This slide is visible — activate its video
+                    activateVideoSlide(entry.target);
+                } else {
+                    // This slide left view — stop its video
+                    deactivateVideoSlide(entry.target);
+                }
+            });
+        }, {
+            root: videoModalFeed,
+            threshold: [0, 0.7, 1]
+        });
+
+        var allSlides = videoModalFeed.querySelectorAll('.video-modal-slide');
+        allSlides.forEach(function (slide) {
+            videoModalObserver.observe(slide);
+        });
     }
 
     function closeVideoModal() {
+        // Remove focus from any element inside the modal before hiding
+        if (document.activeElement && document.activeElement !== document.body) {
+            document.activeElement.blur();
+        }
+        document.body.focus();
+
         videoModal.classList.remove('active');
         videoModal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
 
-        // Pause all iframes by clearing their src
+        // Disconnect observer and stop all playback
+        if (videoModalObserver) {
+            videoModalObserver.disconnect();
+            videoModalObserver = null;
+        }
+
         var iframes = videoModalFeed.querySelectorAll('iframe');
         iframes.forEach(function (iframe) {
-            var src = iframe.src;
             iframe.src = '';
-            iframe.src = src.replace('?autoplay=1', '');
         });
 
         // Clear slides after a short delay
@@ -391,6 +446,12 @@
     }
 
     function closeImageModal() {
+        // Remove focus from any element inside the modal before hiding
+        if (document.activeElement && document.activeElement !== document.body) {
+            document.activeElement.blur();
+        }
+        document.body.focus();
+
         imageModal.classList.remove('active');
         imageModal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
