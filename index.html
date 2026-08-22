@@ -266,6 +266,37 @@
         </div>
     </footer>
 
+    <!-- ===== VIDEO FEED MODAL ===== -->
+    <div id="video-modal" class="video-modal" aria-hidden="true">
+        <button class="modal-close" id="video-modal-close" aria-label="Close video modal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="video-modal-feed" id="video-modal-feed">
+            <!-- Video slides dynamically inserted by main.js -->
+        </div>
+    </div>
+
+    <!-- ===== IMAGE CAROUSEL MODAL ===== -->
+    <div id="image-modal" class="image-modal" aria-hidden="true">
+        <button class="modal-close" id="image-modal-close" aria-label="Close image modal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <button class="carousel-arrow carousel-arrow-left" id="carousel-prev" aria-label="Previous image">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="carousel-track-wrapper">
+            <div class="carousel-track" id="carousel-track">
+                <!-- Image slides dynamically inserted by main.js -->
+            </div>
+        </div>
+        <button class="carousel-arrow carousel-arrow-right" id="carousel-next" aria-label="Next image">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <div class="carousel-dots" id="carousel-dots">
+            <!-- Dots dynamically inserted by main.js -->
+        </div>
+    </div>
+
     <script src="main.js"></script>
 </body>
 </html>
