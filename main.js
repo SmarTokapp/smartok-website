@@ -147,6 +147,11 @@
                     iframe.setAttribute('loading', 'lazy');
                     card.appendChild(iframe);
 
+                    // Invisible overlay to intercept clicks before YouTube iframe can
+                    var clickOverlay = document.createElement('div');
+                    clickOverlay.className = 'video-click-overlay';
+                    card.appendChild(clickOverlay);
+
                     if (video.title) {
                         var titleEl = document.createElement('div');
                         titleEl.className = 'video-card-title';
