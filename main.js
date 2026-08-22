@@ -94,6 +94,10 @@
         var shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
         if (shortMatch) return 'https://www.youtube.com/embed/' + shortMatch[1];
 
+        // Shorts URL: youtube.com/shorts/XYZ
+        var shortsMatch = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/);
+        if (shortsMatch) return 'https://www.youtube.com/embed/' + shortsMatch[1];
+
         // Fallback: return as-is if no known pattern matched
         return url;
     }
