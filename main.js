@@ -228,6 +228,11 @@
             iframe.setAttribute('data-orientation', orientation);
             slide.appendChild(iframe);
 
+            // Transparent overlay on top of iframe to capture touch/swipe gestures on mobile
+            var swipeOverlay = document.createElement('div');
+            swipeOverlay.className = 'modal-swipe-overlay';
+            slide.appendChild(swipeOverlay);
+
             if (video.title) {
                 var titleEl = document.createElement('div');
                 titleEl.className = 'video-modal-slide-title';
