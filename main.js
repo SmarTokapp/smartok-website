@@ -123,7 +123,7 @@
             })
             .then(function (videos) {
                 if (!videos || videos.length === 0) {
-                    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;">Videos coming soon.</p>';
+                    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;">' + (window.SmarTokI18n ? SmarTokI18n.t('videos.comingSoon') : 'Videos coming soon.') + '</p>';
                     return;
                 }
 
@@ -174,7 +174,7 @@
             })
             .catch(function (err) {
                 console.error('[YouTube Showcase] Error loading videos:', err);
-                container.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;">Unable to load videos at this time.</p>';
+                container.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;">' + (window.SmarTokI18n ? SmarTokI18n.t('videos.loadError') : 'Unable to load videos at this time.') + '</p>';
             });
     }
 
@@ -569,6 +569,14 @@
 
     /* ===== INITIAL NAVBAR STATE ===== */
     handleNavbarScroll();
+
+    /* ===== I18N: REFRESH DYNAMIC CONTENT ON LANGUAGE CHANGE ===== */
+    document.addEventListener('smartok:languagechange', function () {
+        var container = document.getElementById('videos-container');
+        if (container && (!videoData || videoData.length === 0)) {
+            loadYouTubeVideos();
+        }
+    });
 
     /* ===== WEB APP DEMO OVERLAY ===== */
     var launchBtn = document.getElementById('launch-webapp-btn');
