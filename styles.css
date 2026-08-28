@@ -1281,6 +1281,6 @@ body:has(.webapp-overlay.active) #navbar {
 /* ===== WEB APP DEMO RESPONSIVE ===== */
 @media (max-width: 768px) {
     .webapp-exit-btn {
-        top: 80px;
+        top: 48px;
     }
 }
