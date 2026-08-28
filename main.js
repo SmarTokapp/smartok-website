@@ -579,10 +579,20 @@
 
     function openWebAppDemo() {
         if (!webappOverlay || !webappIframe) return;
+
+        // Close mobile menu if it's open
+        if (navToggle) navToggle.classList.remove('active');
+        if (navLinks) navLinks.classList.remove('active');
+
         webappIframe.src = WEBAPP_URL;
         webappOverlay.classList.add('active');
         webappOverlay.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+
+        // Focus the exit button for accessibility
+        if (webappExitBtn) {
+            setTimeout(function () { webappExitBtn.focus(); }, 100);
+        }
     }
 
     function closeWebAppDemo() {
@@ -591,6 +601,9 @@
         webappOverlay.classList.remove('active');
         webappOverlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+
+        // Restore focus to the launch button
+        if (launchBtn) launchBtn.focus();
     }
 
     if (launchBtn) {

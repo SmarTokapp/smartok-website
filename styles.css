@@ -1272,3 +1272,15 @@ ul {
 .webapp-overlay.active .webapp-exit-btn {
     display: flex;
 }
+
+/* Hide navbar entirely when web app demo overlay is active */
+body:has(.webapp-overlay.active) #navbar {
+    display: none;
+}
+
+/* ===== WEB APP DEMO RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .webapp-exit-btn {
+        top: 80px;
+    }
+}
