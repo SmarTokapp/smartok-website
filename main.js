@@ -570,4 +570,35 @@
     /* ===== INITIAL NAVBAR STATE ===== */
     handleNavbarScroll();
 
+    /* ===== WEB APP DEMO OVERLAY ===== */
+    var launchBtn = document.getElementById('launch-webapp-btn');
+    var webappOverlay = document.getElementById('webapp-overlay');
+    var webappIframe = document.getElementById('webapp-iframe');
+    var webappExitBtn = document.getElementById('webapp-exit-btn');
+    var WEBAPP_URL = 'https://smart.smartok.app';
+
+    function openWebAppDemo() {
+        webappIframe.src = WEBAPP_URL;
+        webappOverlay.classList.add('active');
+        webappOverlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeWebAppDemo() {
+        webappIframe.src = '';
+        webappOverlay.classList.remove('active');
+        webappOverlay.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    launchBtn.addEventListener('click', openWebAppDemo);
+    webappExitBtn.addEventListener('click', closeWebAppDemo);
+
+    // Close demo on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && webappOverlay.classList.contains('active')) {
+            closeWebAppDemo();
+        }
+    });
+
 })();
