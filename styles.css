@@ -1183,28 +1183,41 @@ ul {
 .nav-launch-btn {
     padding: 10px 24px;
     border-radius: 50px;
-    background: transparent;
-    border: 1.5px solid var(--accent-cyan);
-    color: var(--accent-cyan);
+    background: rgba(10, 10, 15, 0.6);
+    border: 1px solid #00f3ff;
     font-family: var(--font-family);
     font-size: 0.95rem;
-    font-weight: 600;
     cursor: pointer;
     transition: var(--transition-fast);
     position: relative;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
 }
 
 .nav-launch-btn:hover {
-    background: rgba(0, 243, 255, 0.1);
-    box-shadow: 0 0 20px rgba(0, 243, 255, 0.25);
+    background: rgba(0, 243, 255, 0.08);
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.5);
     transform: translateY(-2px);
+}
+
+.launch-brand-smar {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.launch-brand-tok {
+    color: #00f3ff;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.6);
 }
 
 /* ===== WEB APP DEMO OVERLAY ===== */
 .webapp-overlay {
     position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: 9999;
     background: var(--bg-primary);
     display: none;
     flex-direction: column;

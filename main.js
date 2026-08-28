@@ -578,6 +578,7 @@
     var WEBAPP_URL = 'https://smart.smartok.app';
 
     function openWebAppDemo() {
+        if (!webappOverlay || !webappIframe) return;
         webappIframe.src = WEBAPP_URL;
         webappOverlay.classList.add('active');
         webappOverlay.setAttribute('aria-hidden', 'false');
@@ -585,18 +586,24 @@
     }
 
     function closeWebAppDemo() {
+        if (!webappOverlay || !webappIframe) return;
         webappIframe.src = '';
         webappOverlay.classList.remove('active');
         webappOverlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
     }
 
-    launchBtn.addEventListener('click', openWebAppDemo);
-    webappExitBtn.addEventListener('click', closeWebAppDemo);
+    if (launchBtn) {
+        launchBtn.addEventListener('click', openWebAppDemo);
+    }
+
+    if (webappExitBtn) {
+        webappExitBtn.addEventListener('click', closeWebAppDemo);
+    }
 
     // Close demo on Escape key
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && webappOverlay.classList.contains('active')) {
+        if (e.key === 'Escape' && webappOverlay && webappOverlay.classList.contains('active')) {
             closeWebAppDemo();
         }
     });
