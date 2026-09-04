@@ -710,6 +710,26 @@ ul {
     margin-top: 20px;
 }
 
+.footer-support-link {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(0, 255, 170, 0.08);
+    border: 1px solid rgba(0, 255, 170, 0.2);
+    color: #00ffaa;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition-base);
+}
+
+.footer-support-link:hover {
+    background: rgba(0, 255, 170, 0.15);
+    border-color: rgba(0, 255, 170, 0.4);
+}
+
 .social-link {
     width: 40px;
     height: 40px;
