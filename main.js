@@ -6,6 +6,14 @@
 (function () {
     'use strict';
 
+    /* ===== SEO 301 FALLBACK: /about-us → /#about =====
+       If the server didn't already redirect, catch the stale URL
+       and seamlessly navigate the user to the About section. */
+    if (window.location.pathname === '/about-us' || window.location.pathname === '/about-us/') {
+        window.location.replace('/#about');
+        return;
+    }
+
     /* ===== NAVBAR SCROLL EFFECT ===== */
     const navbar = document.getElementById('navbar');
 

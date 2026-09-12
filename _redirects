@@ -1,0 +1,6 @@
+# SmarTok Website Redirects
+# 301 Permanent Redirect: /about-us → /#about
+# Covers Netlify and Cloudflare Pages hosting
+
+/about-us     /#about    301!
+/about-us/    /#about    301!
