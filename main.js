@@ -84,43 +84,61 @@
         });
     });
 
-    /* ===== DYNAMIC YOUTUBE VIDEO SHOWCASE ===== */
+    /* ===== NATIVE SMARTOK VIDEO SHOWCASE ===== */
 
     // Store fetched video data for modal use
     var videoData = [];
 
-    // Convert any YouTube URL format into a proper embed URL
-    function convertToEmbedUrl(url) {
-        if (!url || typeof url !== 'string') return '';
+    // SmarTok backend API — serves video_url (CloudFront) and thumbnail_url per video
+    var SMARTOK_API = 'https://smartok-backend.onrender.com/api';
 
-        // Already an embed URL
-        var embedMatch = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
-        if (embedMatch) return 'https://www.youtube.com/embed/' + embedMatch[1];
+    // Cache of resolved video metadata keyed by numeric video ID
+    var videoMetaCache = {};
 
-        // Standard watch URL: youtube.com/watch?v=XYZ
-        var watchMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-        if (watchMatch) return 'https://www.youtube.com/embed/' + watchMatch[1];
-
-        // Short URL: youtu.be/XYZ
-        var shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-        if (shortMatch) return 'https://www.youtube.com/embed/' + shortMatch[1];
-
-        // Shorts URL: youtube.com/shorts/XYZ
-        var shortsMatch = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/);
-        if (shortsMatch) return 'https://www.youtube.com/embed/' + shortsMatch[1];
-
-        // Fallback: return as-is if no known pattern matched
-        return url;
+    // Extract the numeric video ID from a SmarTok deep link.
+    // Supports "?video=250-title-slug" (ID first) and "?video=title-slug-250" (ID last).
+    function extractSmarTokVideoId(url) {
+        if (!url || typeof url !== 'string') return null;
+        var match = url.match(/[?&]video=([^&#]+)/);
+        if (!match) return null;
+        var raw = decodeURIComponent(match[1]);
+        var segments = raw.split('-').filter(function (s) { return s !== ''; });
+        if (segments.length === 0) return null;
+        if (/^\d+$/.test(segments[0])) return segments[0];
+        var last = segments[segments.length - 1];
+        if (/^\d+$/.test(last)) return last;
+        return null;
     }
 
-    // Detect if a video URL is vertical (Shorts) or horizontal
-    function detectOrientation(url) {
-        if (!url) return 'horizontal';
-        if (url.indexOf('/shorts/') !== -1) return 'vertical';
-        return 'horizontal';
+    // Fetch video metadata (video_url, thumbnail_url, ...) from the backend. Cached per ID.
+    function fetchSmarTokVideoMeta(videoId) {
+        if (videoMetaCache[videoId]) return Promise.resolve(videoMetaCache[videoId]);
+        return fetch(SMARTOK_API + '/videos/' + videoId)
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data && data.success && data.video) {
+                    videoMetaCache[videoId] = data.video;
+                    return data.video;
+                }
+                return null;
+            })
+            .catch(function (err) {
+                console.warn('[SmarTok Videos] Metadata fetch failed for video', videoId, err);
+                return null;
+            });
     }
 
-    function loadYouTubeVideos() {
+    // Update a <video> element's orientation attribute once real dimensions are known
+    function bindOrientationDetection(videoEl) {
+        videoEl.addEventListener('loadedmetadata', function () {
+            var orientation = (videoEl.videoWidth && videoEl.videoHeight && videoEl.videoWidth >= videoEl.videoHeight)
+                ? 'horizontal'
+                : 'vertical';
+            videoEl.setAttribute('data-orientation', orientation);
+        });
+    }
+
+    function loadSmarTokVideos() {
         var container = document.getElementById('videos-container');
         if (!container) return;
 
@@ -144,18 +162,28 @@
                     card.className = 'video-card reveal';
                     card.setAttribute('data-video-index', index);
 
-                    var embedUrl = convertToEmbedUrl(video.url);
+                    var videoId = extractSmarTokVideoId(video.url);
+                    if (videoId) card.setAttribute('data-smartok-id', videoId);
 
-                    var iframe = document.createElement('iframe');
-                    iframe.src = embedUrl;
-                    iframe.title = video.title || 'SmarTok Video';
-                    iframe.setAttribute('frameborder', '0');
-                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-                    iframe.setAttribute('allowfullscreen', '');
-                    iframe.setAttribute('loading', 'lazy');
-                    card.appendChild(iframe);
+                    // Native video preview — poster only, no playback on the grid
+                    var videoEl = document.createElement('video');
+                    videoEl.setAttribute('preload', 'none');
+                    videoEl.setAttribute('playsinline', '');
+                    videoEl.setAttribute('muted', '');
+                    videoEl.setAttribute('title', video.title || 'SmarTok Video');
+                    card.appendChild(videoEl);
 
-                    // Invisible overlay to intercept clicks before YouTube iframe can
+                    // Resolve metadata — card shows the CloudFront thumbnail once fetched
+                    if (videoId) {
+                        fetchSmarTokVideoMeta(videoId).then(function (meta) {
+                            if (!meta) return;
+                            videoData[index].meta = meta;
+                            if (meta.thumbnail_url) videoEl.poster = meta.thumbnail_url;
+                            if (meta.video_url) videoEl.setAttribute('data-video-url', meta.video_url);
+                        });
+                    }
+
+                    // Invisible overlay to intercept clicks before the video element can
                     var clickOverlay = document.createElement('div');
                     clickOverlay.className = 'video-click-overlay';
                     card.appendChild(clickOverlay);
@@ -181,12 +209,12 @@
                 });
             })
             .catch(function (err) {
-                console.error('[YouTube Showcase] Error loading videos:', err);
+                console.error('[SmarTok Videos] Error loading videos:', err);
                 container.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;">' + (window.SmarTokI18n ? SmarTokI18n.t('videos.loadError') : 'Unable to load videos at this time.') + '</p>';
             });
     }
 
-    loadYouTubeVideos();
+    loadSmarTokVideos();
 
     /* ===== VIDEO FEED MODAL ===== */
     var videoModal = document.getElementById('video-modal');
@@ -194,49 +222,85 @@
     var videoModalClose = document.getElementById('video-modal-close');
     var videoModalObserver = null;
 
-    // Activate a slide's iframe: set src with autoplay
+    // Activate a slide's <video>: lazily resolve the CloudFront URL, bind src, and play
     function activateVideoSlide(slide) {
-        var iframe = slide.querySelector('iframe');
-        if (!iframe) return;
-        var embedUrl = iframe.getAttribute('data-src');
-        if (!embedUrl) return;
-        if (iframe.src !== embedUrl + '?autoplay=1') {
-            iframe.src = embedUrl + '?autoplay=1';
+        var videoEl = slide.querySelector('video');
+        if (!videoEl) return;
+
+        function startPlayback() {
+            if (!videoEl.src) return;
+            videoEl.muted = false;
+            var playPromise = videoEl.play();
+            if (playPromise && playPromise.catch) {
+                // Autoplay-with-sound may be blocked — fall back to muted playback
+                playPromise.catch(function () {
+                    videoEl.muted = true;
+                    videoEl.play().catch(function () { /* ignore */ });
+                });
+            }
         }
+
+        // Already bound — just resume
+        if (videoEl.getAttribute('src')) {
+            startPlayback();
+            return;
+        }
+
+        // Resolve metadata: use cached entry first, otherwise fetch by video ID
+        var slideIndex = parseInt(slide.getAttribute('data-slide-index'), 10);
+        var entry = videoData[slideIndex];
+        var videoId = slide.getAttribute('data-smartok-id');
+        var metaPromise = (entry && entry.meta)
+            ? Promise.resolve(entry.meta)
+            : (videoId ? fetchSmarTokVideoMeta(videoId) : Promise.resolve(null));
+
+        metaPromise.then(function (meta) {
+            if (!meta || !meta.video_url) {
+                console.warn('[SmarTok Videos] No playable source for slide', slideIndex);
+                return;
+            }
+            if (entry && !entry.meta) entry.meta = meta;
+            if (meta.thumbnail_url) videoEl.poster = meta.thumbnail_url;
+            videoEl.src = meta.video_url;
+            startPlayback();
+        });
     }
 
-    // Deactivate a slide's iframe: clear src to stop playback
+    // Deactivate a slide's <video>: pause playback (keeps buffer for instant resume)
     function deactivateVideoSlide(slide) {
-        var iframe = slide.querySelector('iframe');
-        if (!iframe) return;
-        if (iframe.src) {
-            iframe.src = '';
-        }
+        var videoEl = slide.querySelector('video');
+        if (!videoEl) return;
+        videoEl.pause();
     }
 
     function openVideoModal(clickedIndex) {
         if (!videoData || videoData.length === 0) return;
 
-        // Build modal feed slides — iframes start without src (no autoplay)
+        // Build modal feed slides — <video> elements start without src (lazy-load on activate)
         videoModalFeed.innerHTML = '';
         videoData.forEach(function (video, index) {
             var slide = document.createElement('div');
             slide.className = 'video-modal-slide';
             slide.setAttribute('data-slide-index', index);
 
-            var embedUrl = convertToEmbedUrl(video.url);
-            var orientation = detectOrientation(video.url);
+            var videoId = extractSmarTokVideoId(video.url);
+            if (videoId) slide.setAttribute('data-smartok-id', videoId);
 
-            var iframe = document.createElement('iframe');
-            iframe.setAttribute('data-src', embedUrl);
-            iframe.title = video.title || 'SmarTok Video';
-            iframe.setAttribute('frameborder', '0');
-            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-            iframe.setAttribute('allowfullscreen', '');
-            iframe.setAttribute('data-orientation', orientation);
-            slide.appendChild(iframe);
+            var videoEl = document.createElement('video');
+            videoEl.setAttribute('playsinline', '');
+            videoEl.setAttribute('loop', '');
+            videoEl.setAttribute('muted', '');
+            videoEl.setAttribute('preload', 'none');
+            videoEl.setAttribute('data-orientation', 'vertical'); // SmarTok videos are 9:16
+            videoEl.title = video.title || 'SmarTok Video';
+            bindOrientationDetection(videoEl);
 
-            // Transparent overlay on top of iframe to capture touch/swipe gestures on mobile
+            // If the grid card already resolved the thumbnail, show it immediately
+            if (video.meta && video.meta.thumbnail_url) videoEl.poster = video.meta.thumbnail_url;
+
+            slide.appendChild(videoEl);
+
+            // Transparent overlay on top of the video to capture touch/swipe gestures on mobile
             var swipeOverlay = document.createElement('div');
             swipeOverlay.className = 'modal-swipe-overlay';
             slide.appendChild(swipeOverlay);
@@ -304,9 +368,11 @@
             videoModalObserver = null;
         }
 
-        var iframes = videoModalFeed.querySelectorAll('iframe');
-        iframes.forEach(function (iframe) {
-            iframe.src = '';
+        var videos = videoModalFeed.querySelectorAll('video');
+        videos.forEach(function (videoEl) {
+            videoEl.pause();
+            videoEl.removeAttribute('src');
+            videoEl.load();
         });
 
         // Clear slides after a short delay
@@ -582,7 +648,7 @@
     document.addEventListener('smartok:languagechange', function () {
         var container = document.getElementById('videos-container');
         if (container && (!videoData || videoData.length === 0)) {
-            loadYouTubeVideos();
+            loadSmarTokVideos();
         }
     });
 
