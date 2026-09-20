@@ -690,26 +690,28 @@ var SmarTokI18n = (function () {
 
         document.querySelectorAll('[data-i18n]').forEach(function (el) {
             var key = el.getAttribute('data-i18n');
-            var text = dict[key] || fallback[key] || key;
-            el.textContent = text;
+            var text = dict[key] || fallback[key];
+            // Missing key → keep the element's inline HTML text instead of
+            // leaking the raw key into the UI.
+            if (text) el.textContent = text;
         });
 
         document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
             var key = el.getAttribute('data-i18n-placeholder');
-            var text = dict[key] || fallback[key] || key;
-            el.setAttribute('placeholder', text);
+            var text = dict[key] || fallback[key];
+            if (text) el.setAttribute('placeholder', text);
         });
 
         document.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
             var key = el.getAttribute('data-i18n-aria');
-            var text = dict[key] || fallback[key] || key;
-            el.setAttribute('aria-label', text);
+            var text = dict[key] || fallback[key];
+            if (text) el.setAttribute('aria-label', text);
         });
 
         document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
             var key = el.getAttribute('data-i18n-html');
-            var text = dict[key] || fallback[key] || key;
-            el.innerHTML = text;
+            var text = dict[key] || fallback[key];
+            if (text) el.innerHTML = text;
         });
 
         document.documentElement.setAttribute('lang', lang);
@@ -731,7 +733,7 @@ var SmarTokI18n = (function () {
 
     function t(key) {
         var dict = translations[currentLang] || translations['en'];
-        return dict[key] || translations['en'][key] || key;
+        return dict[key] || translations['en'][key] || '';
     }
 
     function buildSelector() {
