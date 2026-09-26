@@ -91,6 +91,29 @@
         }, true);
     })();
 
+    /* ===== HERO PROMO VOLUME TOGGLE =====
+       Floating mute/unmute button over the hero promo video. Swaps the
+       speaker SVG between muted (X) and unmuted (waves) states. */
+    (function initHeroVolumeToggle() {
+        var toggle = document.querySelector('.hero-volume-toggle');
+        var video = document.querySelector('.hero-promo-video video');
+        if (!toggle || !video) return;
+
+        var ICON_MUTED = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+        var ICON_VOLUME = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+
+        toggle.addEventListener('click', function () {
+            video.muted = !video.muted;
+            toggle.innerHTML = video.muted ? ICON_MUTED : ICON_VOLUME;
+            // If the user unmutes a video that already hit the 3-loop limit,
+            // restart it so the interaction isn't dead.
+            if (!video.muted && video.paused && video.loop) {
+                video.currentTime = 0;
+                video.play().catch(function () { /* ignore */ });
+            }
+        });
+    })();
+
     /* ===== MOBILE NAVIGATION TOGGLE ===== */
     const navToggle = document.querySelector('.nav-toggle');
     const navLinks = document.querySelector('.nav-links');
