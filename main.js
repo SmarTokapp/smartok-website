@@ -27,6 +27,27 @@
 
     window.addEventListener('scroll', handleNavbarScroll, { passive: true });
 
+    // Per-video loop tracking — shared by the loop guard and hero controls.
+    var videoLoopMap = new WeakMap(); // videoEl -> { loops, lastTime, hitLimit }
+    function getVideoLoopState(v) {
+        var s = videoLoopMap.get(v);
+        if (!s) {
+            s = { loops: 0, lastTime: 0, hitLimit: false };
+            videoLoopMap.set(v, s);
+        }
+        return s;
+    }
+    function videoLoopExhausted(v) {
+        var s = videoLoopMap.get(v);
+        return !!(s && s.hitLimit);
+    }
+
+    // Shared SVG icon set for the hero video controls.
+    var ICON_MUTED = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+    var ICON_VOLUME = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+    var ICON_PLAY = '<svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="8 5 19 12 8 19 8 5"/></svg>';
+    var ICON_REPLAY = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+
     /* ===== GLOBAL 3-LOOP LIMIT =====
        Every <video> on the page (hero promo + showcase cards + modal feed
        slides) may loop at most 3 times, then auto-pauses to save resources.
@@ -34,15 +55,9 @@
        phase — this also covers <video> elements injected dynamically. */
     (function initLoopGuard() {
         var MAX_LOOPS = 3;
-        var loopState = new WeakMap(); // videoEl -> { loops, lastTime, hitLimit }
 
         function getState(v) {
-            var s = loopState.get(v);
-            if (!s) {
-                s = { loops: 0, lastTime: 0, hitLimit: false };
-                loopState.set(v, s);
-            }
-            return s;
+            return getVideoLoopState(v);
         }
 
         // Looped videos never fire 'ended' — detect wrap-arounds where
@@ -111,9 +126,6 @@
         var video = document.querySelector('.hero-promo-video video');
         if (!toggle || !video) return;
 
-        var ICON_MUTED = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
-        var ICON_VOLUME = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
-
         toggle.addEventListener('click', function () {
             video.muted = !video.muted;
             toggle.innerHTML = video.muted ? ICON_MUTED : ICON_VOLUME;
@@ -122,6 +134,49 @@
             if (!video.muted && video.paused && video.loop) {
                 video.currentTime = 0;
                 video.play().catch(function () { /* ignore */ });
+            }
+        });
+    })();
+
+    /* ===== HERO PROMO TAP-TO-PAUSE & CENTER ACTION =====
+       Clicking the video toggles play/pause. A large center button appears
+       whenever the video is paused: Play icon for a manual pause, Replay
+       icon once the 3-loop budget is exhausted. Replay also unmutes and
+       re-syncs the volume toggle. */
+    (function initHeroVideoControls() {
+        var wrap = document.querySelector('.hero-promo-wrap');
+        var video = document.querySelector('.hero-promo-video video');
+        var centerBtn = document.querySelector('.hero-center-btn');
+        var volumeToggle = document.querySelector('.hero-volume-toggle');
+        if (!wrap || !video || !centerBtn) return;
+
+        video.addEventListener('click', function () {
+            if (video.paused) {
+                video.play().catch(function () { /* ignore */ });
+            } else {
+                video.pause();
+            }
+        });
+
+        video.addEventListener('pause', function () {
+            wrap.classList.add('is-paused');
+            centerBtn.innerHTML = videoLoopExhausted(video) ? ICON_REPLAY : ICON_PLAY;
+        });
+
+        video.addEventListener('play', function () {
+            wrap.classList.remove('is-paused');
+        });
+
+        centerBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var wasReplay = videoLoopExhausted(video);
+            // Restart from the beginning on replay; resume in place on pause.
+            if (wasReplay) video.currentTime = 0;
+            video.play().catch(function () { /* ignore */ });
+            if (wasReplay) {
+                // Replay explicitly unmutes — the user asked to watch again.
+                video.muted = false;
+                if (volumeToggle) volumeToggle.innerHTML = ICON_VOLUME;
             }
         });
     })();
