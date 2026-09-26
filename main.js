@@ -27,6 +27,70 @@
 
     window.addEventListener('scroll', handleNavbarScroll, { passive: true });
 
+    /* ===== GLOBAL 3-LOOP LIMIT =====
+       Every <video> on the page (hero promo + showcase cards + modal feed
+       slides) may loop at most 3 times, then auto-pauses to save resources.
+       'timeupdate'/'ended'/'play' don't bubble, so we listen in the capture
+       phase — this also covers <video> elements injected dynamically. */
+    (function initLoopGuard() {
+        var MAX_LOOPS = 3;
+        var loopState = new WeakMap(); // videoEl -> { loops, lastTime, hitLimit }
+
+        function getState(v) {
+            var s = loopState.get(v);
+            if (!s) {
+                s = { loops: 0, lastTime: 0, hitLimit: false };
+                loopState.set(v, s);
+            }
+            return s;
+        }
+
+        // Looped videos never fire 'ended' — detect wrap-arounds where
+        // currentTime jumps back near 0.
+        document.addEventListener('timeupdate', function (e) {
+            var v = e.target;
+            if (!v || v.tagName !== 'VIDEO') return;
+            var s = getState(v);
+            if (v.currentTime < s.lastTime - 0.5) {
+                s.loops += 1;
+                if (s.loops >= MAX_LOOPS && !s.hitLimit) {
+                    s.hitLimit = true;
+                    v.pause();
+                }
+            }
+            s.lastTime = v.currentTime;
+        }, true);
+
+        // Non-looped videos fire 'ended' — replay manually until the 3rd
+        // completion, then stay paused at the end.
+        document.addEventListener('ended', function (e) {
+            var v = e.target;
+            if (!v || v.tagName !== 'VIDEO') return;
+            var s = getState(v);
+            s.loops += 1;
+            s.lastTime = 0;
+            if (s.loops >= MAX_LOOPS) {
+                s.hitLimit = true;
+            } else {
+                v.currentTime = 0;
+                v.play().catch(function () { /* autoplay may be blocked */ });
+            }
+        }, true);
+
+        // A video that hit the limit but is played again (e.g. a modal slide
+        // reactivated by the user) gets a fresh 3-loop budget.
+        document.addEventListener('play', function (e) {
+            var v = e.target;
+            if (!v || v.tagName !== 'VIDEO') return;
+            var s = getState(v);
+            if (s.hitLimit) {
+                s.hitLimit = false;
+                s.loops = 0;
+                s.lastTime = 0;
+            }
+        }, true);
+    })();
+
     /* ===== MOBILE NAVIGATION TOGGLE ===== */
     const navToggle = document.querySelector('.nav-toggle');
     const navLinks = document.querySelector('.nav-links');
