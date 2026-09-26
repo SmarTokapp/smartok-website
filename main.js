@@ -88,6 +88,18 @@
                 s.loops = 0;
                 s.lastTime = 0;
             }
+
+            // 🔇 AUTO-MUTE HERO: any other video starting playback silences the
+            // hero promo so audios never overlap. The volume toggle icon is
+            // re-synced to the muted-speaker state.
+            var heroVideo = document.querySelector('.hero-promo-video video');
+            if (heroVideo && v !== heroVideo && !heroVideo.muted) {
+                heroVideo.muted = true;
+                var heroToggle = document.querySelector('.hero-volume-toggle');
+                if (heroToggle) {
+                    heroToggle.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+                }
+            }
         }, true);
     })();
 
