@@ -412,6 +412,33 @@ ul {
     object-fit: cover;
 }
 
+.hero-volume-toggle {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.hero-volume-toggle:hover {
+    transform: scale(1.1);
+    border-color: rgba(0, 243, 255, 0.7);
+    box-shadow: 0 0 16px rgba(0, 243, 255, 0.45);
+}
+
 @media (max-width: 768px) {
     .hero-promo-wrap {
         width: 94vw;
