@@ -198,6 +198,41 @@
         });
     });
 
+    /* ===== NAV SHARE BUTTON — Web Share API + clipboard fallback ===== */
+    function showShareToast(message) {
+        var toast = document.createElement('div');
+        toast.className = 'share-toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        requestAnimationFrame(function () { toast.classList.add('visible'); });
+        setTimeout(function () {
+            toast.classList.remove('visible');
+            setTimeout(function () { toast.remove(); }, 300);
+        }, 2200);
+    }
+
+    const shareBtn = document.getElementById('nav-share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', async function () {
+            const shareData = { title: document.title, url: window.location.href };
+            // Close the mobile menu if it's open
+            navToggle.classList.remove('active');
+            navLinks.classList.remove('active');
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (e) { /* user cancelled the share sheet */ }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    showShareToast('Link copied!');
+                } catch (e) {
+                    window.prompt('Copy this link:', window.location.href);
+                }
+            }
+        });
+    }
+
     /* ===== SCROLL REVEAL — IntersectionObserver ===== */
     const revealElements = document.querySelectorAll('.reveal');
 
