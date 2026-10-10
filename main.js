@@ -286,10 +286,11 @@
 
     // Extract the numeric video ID from a SmarTok deep link.
     // Supports "?video=250-title-slug" (ID first), "?video=title-slug-250"
-    // (ID last) and the masked path form "/video/250-title-slug".
+    // (ID last), the masked path form "/video/250-title-slug" and the public
+    // share-link form "/share/250--title-slug".
     function extractSmarTokVideoId(url) {
         if (!url || typeof url !== 'string') return null;
-        var match = url.match(/[?&]video=([^&#]+)/) || url.match(/\/video\/([^?&#\/]+)/);
+        var match = url.match(/[?&]video=([^&#]+)/) || url.match(/\/(?:video|share)\/([^?&#\/]+)/);
         if (!match) return null;
         var raw = decodeURIComponent(match[1]);
         var segments = raw.split('-').filter(function (s) { return s !== ''; });
