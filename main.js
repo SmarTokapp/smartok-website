@@ -895,3 +895,199 @@
     });
 
 })();
+
+/* ===== APP SHOWCASE AMBIENT FX =====
+   Cursor-tracked spotlight + luminous spark particles, strictly scoped to
+   the #showcase section. Runs on requestAnimationFrame, pauses via
+   IntersectionObserver when the section scrolls out of view, and disables
+   entirely under prefers-reduced-motion. */
+(function () {
+    var section = document.getElementById('showcase');
+    if (!section) return;
+    var fxLayer = section.querySelector('.showcase-fx');
+    var spotlight = section.querySelector('.showcase-spotlight');
+    var canvas = section.querySelector('.showcase-sparks');
+    if (!fxLayer || !spotlight || !canvas) return;
+
+    // Respect reduced-motion users: hide the layer and never start the loop.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        fxLayer.style.display = 'none';
+        return;
+    }
+
+    var ctx = canvas.getContext('2d');
+    var W = 0, H = 0, centerX = 0, centerY = 0;
+    var SPOT_RADIUS = 320; // half of the 640px spotlight element
+
+    // Pointer state: tx/ty is the lerp target, x/y eases toward it.
+    var pointer = { x: 0, y: 0, tx: 0, ty: 0, inside: false };
+    var spotOpacity = 0.3;
+    var idleT = Math.random() * Math.PI * 2;
+    var particles = [];
+    var rafId = null;
+
+    var SPARK_COLORS = [
+        '0, 243, 255',   // electric cyan (dominant)
+        '0, 243, 255',
+        '0, 243, 255',
+        '255, 255, 255', // soft white
+        '255, 76, 104'   // magenta accent
+    ];
+
+    function resize() {
+        var rect = section.getBoundingClientRect();
+        W = rect.width;
+        H = rect.height;
+        centerX = W / 2;
+        centerY = H / 2;
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(W * dpr);
+        canvas.height = Math.round(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (!pointer.inside) { pointer.tx = centerX; pointer.ty = centerY; }
+    }
+
+    function makeSpark() {
+        return {
+            x: Math.random() * W,
+            y: Math.random() * H,
+            vx: 0,
+            vy: 0,
+            bx: (Math.random() - 0.5) * 0.3,           // baseline drift velocity
+            by: (Math.random() - 0.5) * 0.22 - 0.04,
+            r: 0.6 + Math.random() * 1.6,
+            c: SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)],
+            tw: Math.random() * Math.PI * 2,           // twinkle phase
+            ts: 0.01 + Math.random() * 0.025,          // twinkle speed
+            boost: 0                                    // cursor-proximity glow
+        };
+    }
+
+    function seedSparks() {
+        particles = [];
+        // Density scales with section area; capped for a steady 60fps.
+        var count = Math.max(35, Math.min(80, Math.round((W * H) / 24000)));
+        for (var i = 0; i < count; i++) particles.push(makeSpark());
+    }
+
+    function frame() {
+        // Idle drift: when the cursor is outside the section, the spotlight
+        // orbits gently around the center instead of freezing in place.
+        if (!pointer.inside) {
+            idleT += 0.004;
+            pointer.tx = centerX + Math.sin(idleT) * W * 0.22;
+            pointer.ty = centerY + Math.cos(idleT * 0.7) * H * 0.18;
+        }
+
+        // Smooth lerp toward the target position / opacity.
+        pointer.x += (pointer.tx - pointer.x) * 0.09;
+        pointer.y += (pointer.ty - pointer.y) * 0.09;
+        spotOpacity += ((pointer.inside ? 0.55 : 0.3) - spotOpacity) * 0.06;
+        spotlight.style.opacity = spotOpacity.toFixed(3);
+        spotlight.style.transform = 'translate3d(' +
+            (pointer.x - SPOT_RADIUS) + 'px,' + (pointer.y - SPOT_RADIUS) + 'px,0)';
+
+        ctx.clearRect(0, 0, W, H);
+        ctx.globalCompositeOperation = 'lighter';
+
+        var repelR = 150, repelR2 = repelR * repelR;
+        var glintR = 170, glintR2 = glintR * glintR;
+
+        for (var i = 0; i < particles.length; i++) {
+            var p = particles[i];
+
+            // Cursor repulsion: sparks swirl away and brighten near the pointer.
+            var dx = p.x - pointer.x, dy = p.y - pointer.y;
+            var d2 = dx * dx + dy * dy;
+            if (d2 < repelR2 && d2 > 0.01) {
+                var d = Math.sqrt(d2);
+                var f = ((repelR - d) / repelR) * 0.55;
+                p.vx += (dx / d) * f;
+                p.vy += (dy / d) * f;
+                p.boost = Math.min(1, p.boost + f * 0.3);
+            }
+            p.boost *= 0.94;
+
+            // Relax velocity back toward the gentle baseline drift.
+            p.vx = p.vx * 0.95 + p.bx * 0.05;
+            p.vy = p.vy * 0.95 + p.by * 0.05;
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // Wrap around the section edges.
+            if (p.x < -10) p.x = W + 10; else if (p.x > W + 10) p.x = -10;
+            if (p.y < -10) p.y = H + 10; else if (p.y > H + 10) p.y = -10;
+
+            // Twinkling alpha, boosted near the cursor.
+            p.tw += p.ts;
+            var alpha = (0.18 + 0.5 * (0.5 + 0.5 * Math.sin(p.tw))) * (0.6 + p.boost * 0.9);
+            alpha = Math.min(1, alpha);
+
+            // Outer glow halo + bright core (additive blending does the rest).
+            var glowR = p.r * (4 + p.boost * 3);
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(' + p.c + ',' + (alpha * 0.18).toFixed(3) + ')';
+            ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(' + p.c + ',' + alpha.toFixed(3) + ')';
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Light glints: faint connecting lines from close sparks to the cursor.
+            if (d2 < glintR2 && d2 > 1) {
+                var gd = Math.sqrt(d2);
+                var ga = (1 - gd / glintR) * 0.22 * (pointer.inside ? 1 : 0.4);
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(0, 243, 255,' + ga.toFixed(3) + ')';
+                ctx.lineWidth = 0.5;
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(pointer.x, pointer.y);
+                ctx.stroke();
+            }
+        }
+
+        ctx.globalCompositeOperation = 'source-over';
+        rafId = requestAnimationFrame(frame);
+    }
+
+    function start() {
+        if (rafId === null) rafId = requestAnimationFrame(frame);
+    }
+    function stop() {
+        if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+    }
+
+    // Pointer tracking — pointermove covers mouse, pen, and touch-drag.
+    section.addEventListener('pointermove', function (e) {
+        var rect = section.getBoundingClientRect();
+        pointer.tx = e.clientX - rect.left;
+        pointer.ty = e.clientY - rect.top;
+        pointer.inside = true;
+    });
+    section.addEventListener('pointerleave', function () {
+        pointer.inside = false;
+    });
+
+    // Pause the loop entirely when the section is scrolled off-screen.
+    if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) start(); else stop();
+            });
+        }, { threshold: 0 }).observe(section);
+    } else {
+        start();
+    }
+
+    var resizeTimer = null;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () { resize(); seedSparks(); }, 150);
+    });
+
+    resize();
+    seedSparks();
+    pointer.x = pointer.tx = centerX;
+    pointer.y = pointer.ty = centerY;
+})();

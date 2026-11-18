@@ -666,6 +666,51 @@ ul {
     background: var(--bg-primary);
     position: relative;
     z-index: 1;
+    overflow: hidden;
+}
+
+/* Mouse-reactive ambient FX layer — clipped inside the showcase section */
+.showcase-fx {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.showcase-spotlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 640px;
+    height: 640px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        rgba(0, 243, 255, 0.32) 0%,
+        rgba(0, 243, 255, 0.13) 35%,
+        rgba(255, 76, 104, 0.09) 58%,
+        transparent 72%);
+    filter: blur(40px);
+    opacity: 0.3;
+    will-change: transform, opacity;
+    transform: translate3d(-320px, -320px, 0);
+}
+
+.showcase-sparks {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Keep gallery content crisp above the FX layer */
+.showcase-section > :not(.showcase-fx) {
+    position: relative;
+    z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .showcase-fx { display: none; }
 }
 
 .showcase-banner {
