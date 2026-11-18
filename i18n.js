@@ -18,6 +18,8 @@ var SmarTokI18n = (function () {
             'nav.videos': 'Latest Content',
             'nav.about': 'About',
             'nav.store': 'Store',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': 'Play SmarTokPlay: EduGames on the Web',
             'nav.getApp': 'Get the App',
             'nav.toggleNav': 'Toggle navigation',
             'hero.badge': 'AI-Filtered Premium Content',
@@ -80,6 +82,8 @@ var SmarTokI18n = (function () {
             'nav.videos': 'Último Contenido',
             'nav.about': 'Acerca de',
             'nav.store': 'Tienda',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': 'Juega SmarTokPlay: EduGames en la Web',
             'nav.getApp': 'Obtén la App',
             'nav.toggleNav': 'Alternar navegación',
             'hero.titlePre': 'Crea. Conecta.',
@@ -140,6 +144,8 @@ var SmarTokI18n = (function () {
             'nav.videos': 'Dernier Contenu',
             'nav.about': 'À Propos',
             'nav.store': 'Boutique',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': 'Jouez à SmarTokPlay : EduGames sur le Web',
             'nav.getApp': "Obtenir l'App",
             'nav.toggleNav': 'Basculer la navigation',
             'hero.titlePre': 'Créer. Connecter.',
@@ -200,6 +206,8 @@ var SmarTokI18n = (function () {
             'nav.videos': 'Neueste Inhalte',
             'nav.about': 'Über uns',
             'nav.store': 'Shop',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': 'Spiele SmarTokPlay: EduGames im Web',
             'nav.getApp': 'App holen',
             'nav.toggleNav': 'Navigation umschalten',
             'hero.titlePre': 'Erstellen. Verbinden.',
@@ -260,6 +268,8 @@ var SmarTokI18n = (function () {
             'nav.videos': 'Conteúdo Recente',
             'nav.about': 'Sobre',
             'nav.store': 'Loja',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': 'Jogue SmarTokPlay: EduGames na Web',
             'nav.getApp': 'Baixar App',
             'nav.toggleNav': 'Alternar navegação',
             'hero.titlePre': 'Crie. Conecte.',
@@ -320,6 +330,8 @@ var SmarTokI18n = (function () {
             'nav.videos': 'Ultimi Contenuti',
             'nav.about': 'Informazioni',
             'nav.store': 'Negozio',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': 'Gioca a SmarTokPlay: EduGames sul Web',
             'nav.getApp': "Ottieni l'App",
             'nav.toggleNav': 'Attiva/disattiva navigazione',
             'hero.titlePre': 'Crea. Connetti.',
@@ -380,6 +392,8 @@ var SmarTokI18n = (function () {
             'nav.videos': '最新コンテンツ',
             'nav.about': '概要',
             'nav.store': 'ストア',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': 'WebでSmarTokPlay: EduGamesをプレイ',
             'nav.getApp': 'アプリを入手',
             'nav.toggleNav': 'ナビゲーションを切り替え',
             'hero.titlePre': '作成。つながる。',
@@ -440,6 +454,8 @@ var SmarTokI18n = (function () {
             'nav.videos': '最新内容',
             'nav.about': '关于',
             'nav.store': '商店',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': '在网页上玩 SmarTokPlay: EduGames',
             'nav.getApp': '获取应用',
             'nav.toggleNav': '切换导航',
             'hero.titlePre': '创作。连接。',
@@ -500,6 +516,8 @@ var SmarTokI18n = (function () {
             'nav.videos': 'أحدث المحتوى',
             'nav.about': 'حول',
             'nav.store': 'المتجر',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': 'العب SmarTokPlay: EduGames على الويب',
             'nav.getApp': 'احصل على التطبيق',
             'nav.toggleNav': 'تبديل التنقل',
             'hero.titlePre': 'أنشئ. تواصل.',
@@ -560,6 +578,8 @@ var SmarTokI18n = (function () {
             'nav.videos': 'नवीनतम सामग्री',
             'nav.about': 'परिचय',
             'nav.store': 'स्टोर',
+            'smartokplay_btn': 'SmarTokPlay',
+            'smartokplay_btn_title': 'वेब पर SmarTokPlay: EduGames खेलें',
             'nav.getApp': 'ऐप प्राप्त करें',
             'nav.toggleNav': 'नेविगेशन टॉगल करें',
             'hero.titlePre': 'बनाएं। जुड़ें।',
@@ -688,6 +708,12 @@ var SmarTokI18n = (function () {
             var key = el.getAttribute('data-i18n-aria');
             var text = dict[key] || fallback[key];
             if (text) el.setAttribute('aria-label', text);
+        });
+
+        document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n-title');
+            var text = dict[key] || fallback[key];
+            if (text) el.setAttribute('title', text);
         });
 
         document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
