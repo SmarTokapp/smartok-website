@@ -349,7 +349,21 @@
         <iframe id="webapp-iframe" src="" title="SmarTok Web App" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
 
+    <link rel="stylesheet" href="assets/brainy-widget.css">
     <script src="i18n.js"></script>
     <script src="main.js"></script>
+    <script>
+        window.BRAINY_WIDGET = {
+            site: 'website',
+            gifsBase: 'assets/brainy/',
+            subtitle: 'SmarTok Assistant',
+            chips: [
+                'What is SmarTok?',
+                'How do I download the app?',
+                'What games and blogs are inside?'
+            ]
+        };
+    </script>
+    <script src="assets/brainy-widget.js" defer></script>
 </body>
 </html>
