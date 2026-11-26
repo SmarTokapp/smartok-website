@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Redirecting — SmarTok</title>
+  <link rel="icon" type="image/png" href="/assets/logo.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #05080D;
+      color: #e8f7ff;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      text-align: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 420px;
+      padding: 48px 36px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.12), 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    .logo {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      border: 2px solid #00F0FF;
+      box-shadow: 0 0 24px rgba(0, 240, 255, 0.4);
+      object-fit: cover;
+      background: #0a0e16;
+    }
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    h1 .accent { color: #00F0FF; }
+    p {
+      font-size: 0.95rem;
+      color: #9db8c4;
+      line-height: 1.55;
+      margin-bottom: 24px;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      margin: 0 auto 22px;
+      border: 3px solid rgba(0, 240, 255, 0.2);
+      border-top-color: #00F0FF;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    a.btn {
+      display: inline-block;
+      padding: 12px 28px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00f0ff, #00c8d8);
+      color: #04121a;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: filter 0.15s ease, transform 0.15s ease;
+    }
+    a.btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="/assets/logo.png" alt="SmarTok">
+    <h1>SmarTok <span class="accent">404</span></h1>
+    <p>This page doesn't exist — redirecting you to SmarTok…</p>
+    <div class="spinner" aria-hidden="true"></div>
+    <a class="btn" href="https://smartok.app/">Go to smartok.app</a>
+  </div>
+  <script>
+    window.location.replace('https://smartok.app/');
+  </script>
+</body>
+</html>
